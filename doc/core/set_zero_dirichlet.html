@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of set_zero_dirichlet</title>
+  <meta name="keywords" content="set_zero_dirichlet">
+  <meta name="description" content="SET_ZERO_DIRICHLET alters the linear system discretizing the Poisson">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">core</a> &gt; set_zero_dirichlet.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for core&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>set_zero_dirichlet
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>SET_ZERO_DIRICHLET alters the linear system discretizing the Poisson</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ L, f ] = set_zero_dirichlet( L, f, ku, kv, p, cpx, cpy, cpz  ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> SET_ZERO_DIRICHLET alters the linear system discretizing the Poisson 
+ equation such that the boundary of the solution is fixed.
+ L: stiffness matrix
+ f: force vector
+ ku, kv: knot vectors
+ p: polynomial degrees
+ cpx, cpy, cpz: control points</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>	NCP calculates the number of control points in one dimension.</li><li><a href="set_dirichlet_bc.html" class="code" title="function [ L ] = set_dirichlet_bc( L, cpi, cp, ku, kv, p )">set_dirichlet_bc</a>	SET_DIRICHLET_BC modifies the stiffness matrix to enforce the essential</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ L, f ] = set_zero_dirichlet( L, f, ku, kv, p, cpx, cpy, cpz  )</a>
+0002 <span class="comment">% SET_ZERO_DIRICHLET alters the linear system discretizing the Poisson</span>
+0003 <span class="comment">% equation such that the boundary of the solution is fixed.</span>
+0004 <span class="comment">% L: stiffness matrix</span>
+0005 <span class="comment">% f: force vector</span>
+0006 <span class="comment">% ku, kv: knot vectors</span>
+0007 <span class="comment">% p: polynomial degrees</span>
+0008 <span class="comment">% cpx, cpy, cpz: control points</span>
+0009 
+0010 disp(<span class="string">'Setting boundary conditions...'</span>);
+0011 
+0012 <span class="comment">% remove normalization</span>
+0013 ls = size(L);
+0014 L(ls(1),:) = 0;
+0015 L(:,ls(2)) = 0;
+0016 L(ls(1),ls(2)) = 1;
+0017 
+0018 f(length(f)) = 0;
+0019 
+0020 n = [<a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>(ku,p(1)),<a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>(kv,p(2))];
+0021 
+0022 <span class="keyword">for</span> I=1:size(cpx,1)
+0023        
+0024     <span class="keyword">for</span> J=1:size(cpx,2)
+0025         
+0026         <span class="keyword">if</span>(I==1 || J==1 || I==size(cpx,1) || J==size(cpx,2))
+0027                         
+0028             f((I-1)*n(2) + J) = 0;
+0029             cp = [cpx(I,J),cpy(I,J),cpz(I,J)];
+0030             cpi = [I,J];
+0031             
+0032            L = <a href="set_dirichlet_bc.html" class="code" title="function [ L ] = set_dirichlet_bc( L, cpi, cp, ku, kv, p )">set_dirichlet_bc</a>(L,cpi,cp,ku,kv,p);
+0033                      
+0034         <span class="keyword">end</span>
+0035        
+0036     <span class="keyword">end</span>
+0037     
+0038 <span class="keyword">end</span>
+0039 
+0040 <span class="keyword">end</span>
+0041</pre></div>
+<hr><address>Generated on Fri 25-May-2012 10:17:07 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

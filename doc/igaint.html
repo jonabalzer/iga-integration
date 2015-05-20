@@ -1,0 +1,178 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of igaint</title>
+  <meta name="keywords" content="igaint">
+  <meta name="description" content="init">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">.</a> &gt; igaint.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for .&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>igaint
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>init</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> init</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% init</span>
+0002 clear all;
+0003 close all;
+0004 clc;
+0005 path(path, <span class="string">'./core'</span>);
+0006 
+0007 <span class="comment">% load data</span>
+0008 load(<span class="string">'./data/sine.mat'</span>);
+0009 npx = size(gu);
+0010 
+0011 <span class="comment">% set spline parameters</span>
+0012 p = [2,2];
+0013 scales = [4,4];
+0014 
+0015 <span class="comment">% add noise</span>
+0016 sigma = 0;
+0017 nu = normrnd(0,sigma,npx);
+0018 nv = normrnd(0,sigma,npx);
+0019 gun = gu + nu;
+0020 gvn = gv + nu;
+0021 
+0022 <span class="comment">% corrupt data</span>
+0023 width = 0;
+0024 density = 0.001; 
+0025 mask = imnoise(zeros(size(gu)),<span class="string">'salt &amp; pepper'</span>,density);
+0026 h = ones(width,width);
+0027 mask = imfilter(mask,h);
+0028 mask(find(mask&gt;1)) = 1;
+0029 mask = ones(size(mask)) - mask;
+0030 gui = gu.*mask;
+0031 gvi = gv.*mask;
+0032 
+0033 <span class="comment">% initialize the B-spline patch</span>
+0034 ku = init_knot_vector(npx(1),scales(1),p(1));   <span class="comment">% knot vectors</span>
+0035 kv = init_knot_vector(npx(2),scales(2),p(2));
+0036 [cpx,cpy,cpz] = init_cps(ku,kv,p);              <span class="comment">% control point grid</span>
+0037 
+0038 <span class="comment">% assemble Poisson equation</span>
+0039 t = cputime;
+0040 L = assemble_lb(ku,kv,p);
+0041 f = assemble_force(ku,kv,p,gui,gvi);
+0042 disp([<span class="string">'Assembly finishes after '</span>,num2str(cputime-t),<span class="string">' s.'</span>]);
+0043 
+0044 <span class="comment">% solve the system</span>
+0045 disp([<span class="string">'Solving sparse linear system of size '</span>,int2str(size(L,1)-1),<span class="string">'x'</span>,int2str(size(L,2)-1),<span class="string">'...'</span>]);
+0046 t = cputime;
+0047 sol = L\f;                                                        <span class="comment">% direct solver</span>
+0048 <span class="comment">%sol = pcg(L,f,1e-6,500);                                         % pre-conditioned iterative CG</span>
+0049 disp([<span class="string">'Solved after '</span>,num2str(cputime-t),<span class="string">' s.'</span>]);
+0050 sol = sol(1:length(f)-1);                                         <span class="comment">% remove normalization = mean-value condition</span>
+0051 cpz = reshape(sol,size(cpx))';                                    <span class="comment">% set control points according to solution</span>
+0052 
+0053 <span class="comment">% evaluate function and gradients at grid points</span>
+0054 [u,v] = ndgrid(1:1:npx(1),1:1:npx(2));
+0055 gr = zeros(size(u));
+0056 gur = gr;
+0057 gvr = gr;
+0058 
+0059 <span class="keyword">for</span> i=1:size(u,1)
+0060      
+0061      <span class="keyword">for</span> j=1:size(u,2)
+0062          
+0063          [gr(i,j),gur(i,j),gvr(i,j)] = eval_func(u(i,j),v(i,j),ku,kv,p,cpz);
+0064        
+0065      <span class="keyword">end</span>
+0066      
+0067 <span class="keyword">end</span>
+0068 
+0069 <span class="comment">% L2-error</span>
+0070 locerror = sqrt((gu-gur).*(gu-gur)+(gv-gvr).*(gv-gvr));
+0071 error = norm((gu-gur)+(gv-gvr),2)/sqrt(npx(1)*npx(2));
+0072 disp([<span class="string">'L2-error:'</span>,num2str(error)]);
+0073 
+0074 <span class="comment">% do some visualizations</span>
+0075 plot_gradient_field(gui,gvi);
+0076  
+0077 h=figure(<span class="string">'Position'</span>,[50, 1000, 2000, 1800],<span class="string">'Name'</span>,<span class="string">'Error'</span>);
+0078 set(h,<span class="string">'Color'</span>,<span class="string">'black'</span>);
+0079 hold on
+0080 surf(u,v,gr,locerror,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="string">'FaceColor'</span>,<span class="string">'interp'</span>);
+0081 caxis([min(min(locerror)),max(max(locerror))]);
+0082 cbar = colorbar(<span class="string">'Location'</span>,<span class="string">'West'</span>);
+0083 cpos = get(cbar,<span class="string">'Position'</span>);
+0084 cpos(3)=1.5*cpos(3);
+0085 cpos(4)=0.25*cpos(4);
+0086 cpos(2)=cpos(2)+0.12;
+0087 cpos(1)=cpos(1)-0.1;
+0088 set(cbar,<span class="string">'Position'</span>,cpos);
+0089 axis equal;
+0090 view(-40,21); 
+0091 axis tight
+0092 camlight; 
+0093 lighting phong;
+0094 set(gca,<span class="string">'Visible'</span>,<span class="string">'off'</span>)
+0095 camzoom(1.75);
+0096 camdolly(0.1,-0.2,0)
+0097 
+0098 h=figure(<span class="string">'Position'</span>,[50, 1000, 2000, 1800],<span class="string">'Name'</span>,<span class="string">'Spline reconstruction'</span>);
+0099 set(h,<span class="string">'Color'</span>,<span class="string">'black'</span>);
+0100 hold on;
+0101 lighting phong;
+0102 surf(u,v,gr,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="string">'FaceColor'</span>,[0.7,0.7,0.7]);
+0103 mesh(cpx,cpy,cpz,<span class="string">'FaceColor'</span>,<span class="string">'none'</span>,<span class="string">'EdgeColor'</span>,[1,0,0],<span class="string">'Marker'</span>,<span class="string">'o'</span>,<span class="string">'Linewidth'</span>,2,<span class="string">'EdgeLighting'</span>,<span class="string">'none'</span>,<span class="string">'MarkerFaceColor'</span>,[1,0,0],<span class="string">'MarkerSize'</span>,18);
+0104 axis equal;
+0105 axis tight
+0106 set(gca,<span class="string">'Visible'</span>,<span class="string">'off'</span>)
+0107 view(-40,21);
+0108 lighting phong;
+0109 camlight; 
+0110 camzoom(1.7);
+0111 camdolly(0.1,0.2,0)
+0112  
+0113 <span class="comment">% if ground truth available, plot it</span>
+0114 <span class="keyword">if</span>(norm(g,2)&gt;0)
+0115     
+0116     h=figure(<span class="string">'Position'</span>,[50, 1000, 2000, 1800],<span class="string">'Name'</span>,<span class="string">'Ground truth surface'</span>);
+0117     set(h,<span class="string">'Color'</span>,<span class="string">'black'</span>);
+0118     hold on
+0119     surf(u,v,g,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="string">'FaceColor'</span>,[0.7,0.7,0.7]);
+0120     axis equal;
+0121     view(-40,21);
+0122     axis tight
+0123     camlight;
+0124     lighting phong;
+0125     set(gca,<span class="string">'Visible'</span>,<span class="string">'off'</span>)
+0126     camzoom(1.75);
+0127     camdolly(0.1,0.2,0)
+0128     
+0129 <span class="keyword">end</span>
+0130 
+0131</pre></div>
+<hr><address>Generated on Mon 21-May-2012 12:15:10 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

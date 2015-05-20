@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of cox</title>
+  <meta name="keywords" content="cox">
+  <meta name="description" content="COX computes the values of the p+1 basis splines at x. These values are">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">core</a> &gt; cox.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for core&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>cox
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>COX computes the values of the p+1 basis splines at x. These values are</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ N, knotSpan ] = cox( x, p, k ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> COX computes the values of the p+1 basis splines at x. These values are
+ put into the first row of a quadratic matrix N, which can be filled up
+ with derivative values at x by COXDER(N,knotSpan,k).
+ x: abscissa
+ p: polynomial degree
+ k: knot vector
+ N: (p+1)x(p+1) array whose first row contains the result
+ knotSpan: knot interval that contains x</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="assemble_force.html" class="code" title="function [ force ] = assemble_force( ku, kv, p, gu, gv )">assemble_force</a>	ASSEMBLE_FORCE assembles the right-hand side of the discrete Poisson</li><li><a href="assemble_lb.html" class="code" title="function [ L ] = assemble_lb( ku, kv, p )">assemble_lb</a>	ASSEMBLE_LB assembles the stiffness matrix for the Poisson problem, i.e.,</li><li><a href="eval_func.html" class="code" title="function [ g, gu, gv ] = eval_func( u, v, ku, kv, p, cps )">eval_func</a>	EVAL_FUNC evaluates a function on a B-spline patch defined by its control</li><li><a href="set_dirichlet_bc.html" class="code" title="function [ L ] = set_dirichlet_bc( L, cpi, cp, ku, kv, p )">set_dirichlet_bc</a>	SET_DIRICHLET_BC modifies the stiffness matrix to enforce the essential</li><li><a href="set_neumann_bc.html" class="code" title="function [ L ] = set_neumann_bc( L, cpi, cp, dir, ku, kv, p )">set_neumann_bc</a>	SET_NEUMANN_BC modifies the stiffness matrix as to enforce the natural or</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ N, knotSpan ] = cox( x, p, k )</a>
+0002 <span class="comment">% COX computes the values of the p+1 basis splines at x. These values are</span>
+0003 <span class="comment">% put into the first row of a quadratic matrix N, which can be filled up</span>
+0004 <span class="comment">% with derivative values at x by COXDER(N,knotSpan,k).</span>
+0005 <span class="comment">% x: abscissa</span>
+0006 <span class="comment">% p: polynomial degree</span>
+0007 <span class="comment">% k: knot vector</span>
+0008 <span class="comment">% N: (p+1)x(p+1) array whose first row contains the result</span>
+0009 <span class="comment">% knotSpan: knot interval that contains x</span>
+0010 
+0011 N = zeros(p+1,p+1);
+0012 
+0013 knotSpan = -1;
+0014 
+0015 <span class="comment">% find knot span</span>
+0016 <span class="keyword">for</span> s=1:(length(k)-1)
+0017 
+0018     <span class="keyword">if</span>(x&gt;=k(s) &amp;&amp; x&lt;k(s+1))
+0019        
+0020         knotSpan = s;
+0021         <span class="keyword">break</span>;
+0022         
+0023     <span class="keyword">elseif</span> (x==k(length(k)))
+0024         
+0025         knotSpan = length(k)-p-1;
+0026         <span class="keyword">break</span>;
+0027         
+0028     <span class="keyword">end</span>
+0029     
+0030 <span class="keyword">end</span>
+0031 
+0032 <span class="keyword">if</span>(knotSpan==-1)
+0033     error(<span class="string">'Error! Point out of domain!'</span>);
+0034 <span class="keyword">end</span>
+0035 
+0036 N(1,p+1)=1;
+0037 
+0038 <span class="comment">% get supporting knots 'subKnot'</span>
+0039 subKnot = zeros(1,2*p+1);
+0040 <span class="keyword">for</span> s=1:(2*p+1)    
+0041     subKnot(s) = k(knotSpan-p+s-1);
+0042 <span class="keyword">end</span>
+0043 
+0044 <span class="keyword">for</span> s=2:(p+1)  <span class="comment">%</span>
+0045     
+0046     <span class="keyword">for</span> t=1:p
+0047         
+0048         <span class="comment">% every value N(s,t) depends on N(s-1,t) and N(s-1,t+1)</span>
+0049         <span class="keyword">if</span>((subKnot(t+s-1)-subKnot(t))~=0 &amp; (x-subKnot(t))~=0)
+0050         <span class="comment">%if((x-subKnot(t))~=0)</span>
+0051             A = (x-subKnot(t))/(subKnot(t+s-1)-subKnot(t));
+0052         <span class="keyword">else</span>
+0053             A = 0;
+0054         <span class="keyword">end</span>;
+0055         
+0056         <span class="keyword">if</span>((subKnot(t+s-1+1)-subKnot(t+1))~=0 &amp; (subKnot(t+(s-1)+1)-x)~=0)
+0057         <span class="comment">%if((subKnot(t+(s-1)+1)-x)~=0)</span>
+0058             B = (subKnot(t+(s-1)+1)-x)/(subKnot(t+s-1+1)-subKnot(t+1));
+0059         <span class="keyword">else</span>
+0060             B = 0;
+0061         <span class="keyword">end</span>
+0062             
+0063         N(s,t) = A*N(s-1,t)+B*N(s-1,t+1);
+0064                
+0065     <span class="keyword">end</span>
+0066     
+0067     <span class="keyword">if</span>((x-subKnot(p+1))~= 0 &amp; (subKnot(p+1+s-1)-subKnot(p+1))~=0)
+0068     <span class="comment">%if((subKnot(p+1+s-1)-subKnot(p+1))~=0)</span>
+0069         A = (x-subKnot(p+1))/(subKnot(p+1+s-1)-subKnot(p+1));
+0070     <span class="keyword">else</span>
+0071         A = 0;
+0072     <span class="keyword">end</span>
+0073     
+0074     N(s,p+1) = A*N(s-1,p+1); 
+0075     
+0076 <span class="keyword">end</span>
+0077 
+0078 N = flipud(N);
+0079     
+0080 <span class="keyword">end</span>
+0081</pre></div>
+<hr><address>Generated on Fri 25-May-2012 10:17:07 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

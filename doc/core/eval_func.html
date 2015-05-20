@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of eval_func</title>
+  <meta name="keywords" content="eval_func">
+  <meta name="description" content="EVAL_FUNC evaluates a function on a B-spline patch defined by its control">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">core</a> &gt; eval_func.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for core&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>eval_func
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>EVAL_FUNC evaluates a function on a B-spline patch defined by its control</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ g, gu, gv ] = eval_func( u, v, ku, kv, p, cps ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> EVAL_FUNC evaluates a function on a B-spline patch defined by its control
+ values.
+ u,v: abscissae
+ ku, kv: knot vector
+ p: polynomial degrees
+ cps: control values of the function</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>	COX computes the values of the p+1 basis splines at x. These values are</li><li><a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>	COXDER computes derivatives of basis splines by Cox-de Boor recursion. It</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ g, gu, gv ] = eval_func( u, v, ku, kv, p, cps )</a>
+0002 <span class="comment">% EVAL_FUNC evaluates a function on a B-spline patch defined by its control</span>
+0003 <span class="comment">% values.</span>
+0004 <span class="comment">% u,v: abscissae</span>
+0005 <span class="comment">% ku, kv: knot vector</span>
+0006 <span class="comment">% p: polynomial degrees</span>
+0007 <span class="comment">% cps: control values of the function</span>
+0008 
+0009 [Nu,su] = <a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>(u,p(1),ku);
+0010 [Nv,sv] = <a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>(v,p(2),kv);
+0011 Nu = <a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>(Nu,su,ku);
+0012 Nv = <a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>(Nv,sv,kv);
+0013 
+0014 g = 0;
+0015 gu = 0;
+0016 gv = 0;
+0017 
+0018 <span class="keyword">for</span> i=1:p(1)+1
+0019     
+0020     <span class="keyword">for</span> j=1:p(2)+1
+0021       
+0022         I = su - p(1) - 1 + i;          
+0023         J = sv - p(2) - 1 + j;
+0024         
+0025         g = g + cps(I,J)*Nu(1,i)*Nv(1,j);
+0026         gu = gu + cps(I,J)*Nu(2,i)*Nv(1,j);
+0027         gv = gv + cps(I,J)*Nu(1,i)*Nv(2,j);
+0028         
+0029     <span class="keyword">end</span>
+0030  
+0031 <span class="keyword">end</span>
+0032 
+0033 <span class="keyword">end</span>
+0034</pre></div>
+<hr><address>Generated on Fri 25-May-2012 10:17:07 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

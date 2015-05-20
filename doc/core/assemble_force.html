@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of assemble_force</title>
+  <meta name="keywords" content="assemble_force">
+  <meta name="description" content="ASSEMBLE_FORCE assembles the right-hand side of the discrete Poisson">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">core</a> &gt; assemble_force.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for core&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>assemble_force
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>ASSEMBLE_FORCE assembles the right-hand side of the discrete Poisson</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ force ] = assemble_force( ku, kv, p, gu, gv ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ASSEMBLE_FORCE assembles the right-hand side of the discrete Poisson 
+ equation characterizing the minimum of the gradient error functional.
+ ku, kv: knot vectors 
+ p: polynomial degrees
+ gu, gv: gradient field to integrate
+ force: force vector</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>	COX computes the values of the p+1 basis splines at x. These values are</li><li><a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>	COXDER computes derivatives of basis splines by Cox-de Boor recursion. It</li><li><a href="get_element_vector.html" class="code" title="function [ e ] = get_element_vector( k, p )">get_element_vector</a>	GET_ELEMENT_VECTOR extracts isogeometric finite elements from a knot</li><li><a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>	NCP calculates the number of control points in one dimension.</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ force ] = assemble_force( ku, kv, p, gu, gv )</a>
+0002 <span class="comment">% ASSEMBLE_FORCE assembles the right-hand side of the discrete Poisson</span>
+0003 <span class="comment">% equation characterizing the minimum of the gradient error functional.</span>
+0004 <span class="comment">% ku, kv: knot vectors</span>
+0005 <span class="comment">% p: polynomial degrees</span>
+0006 <span class="comment">% gu, gv: gradient field to integrate</span>
+0007 <span class="comment">% force: force vector</span>
+0008 
+0009 disp(<span class="string">'Assembling force vector...'</span>);
+0010 
+0011 <span class="comment">% get finite elements</span>
+0012 eu = <a href="get_element_vector.html" class="code" title="function [ e ] = get_element_vector( k, p )">get_element_vector</a>(ku,p(1));
+0013 ev = <a href="get_element_vector.html" class="code" title="function [ e ] = get_element_vector( k, p )">get_element_vector</a>(kv,p(2));
+0014 
+0015 <span class="comment">% get some stats</span>
+0016 nb = (p(1)+1)*(p(2)+1);                     <span class="comment">% no of local basis functions</span>
+0017 n = [<a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>(ku,p(1)),<a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>(kv,p(2))];            <span class="comment">% no of control points per dim</span>
+0018 ngps = [eu(2),ev(2)]-0.5;                   <span class="comment">% no of Gauss points</span>
+0019 
+0020 <span class="comment">% allocate temp and output arrays</span>
+0021 force = zeros(n(1)*n(2),1);
+0022 
+0023 <span class="comment">% iterate through the elements</span>
+0024 <span class="keyword">for</span> e=1:length(eu)-1
+0025     
+0026     <span class="keyword">for</span> f=1:length(ev)-1
+0027         
+0028         <span class="comment">% evaluate at Gauss points = image pixels</span>
+0029         <span class="keyword">for</span> gpi=1:ngps(1)
+0030             
+0031             <span class="keyword">for</span> gpj=1:ngps(2)
+0032                 
+0033                 [Nu,su] = <a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>(eu(e)-0.5+gpi,p(1),ku);
+0034                 [Nv,sv] = <a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>(ev(f)-0.5+gpj,p(2),kv);
+0035                 Nu = <a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>(Nu,su,ku);
+0036                 Nv = <a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>(Nv,sv,kv);
+0037                 
+0038                 <span class="keyword">for</span> i=1:(p(1)+1)
+0039                     
+0040                     <span class="keyword">for</span> j=1:(p(2)+1)
+0041                         
+0042                         gm = [gu(eu(e)-0.5+gpi,ev(f)-0.5+gpj);gv(eu(e)-0.5+gpi,ev(f)-0.5+gpj)];
+0043                 
+0044                         cube(i,j,(gpi-1)*ngps(2)+gpj) = gm(1)*Nu(2,i)*Nv(1,j) + gm(2)*Nu(1,i)*Nv(2,j);
+0045                         
+0046                     <span class="keyword">end</span>
+0047                     
+0048                 <span class="keyword">end</span>
+0049                 
+0050             <span class="keyword">end</span>
+0051             
+0052         <span class="keyword">end</span>
+0053         
+0054         <span class="comment">% actual integration</span>
+0055         <span class="keyword">for</span> i=1:(p(1)+1)
+0056                     
+0057            <span class="keyword">for</span> j=1:(p(2)+1)
+0058                 
+0059                 int = 0;
+0060                 
+0061                 <span class="keyword">for</span> gpi=1:ngps(1)
+0062                     
+0063                     <span class="keyword">for</span> gpj=1:ngps(2)
+0064                         
+0065                         int = int + cube(i,j,(gpi-1)*ngps(2)+gpj);
+0066                         
+0067                     <span class="keyword">end</span>
+0068                     
+0069                 <span class="keyword">end</span>
+0070                 
+0071                 I = e - 1 + i;
+0072                 J = f - 1 + j;
+0073                 A = (I-1)*n(2) + J;
+0074                 
+0075                 force(A) = force(A) + int;
+0076                 
+0077             <span class="keyword">end</span>
+0078             
+0079         <span class="keyword">end</span>
+0080         
+0081         
+0082     <span class="keyword">end</span>
+0083     
+0084     
+0085 <span class="keyword">end</span>
+0086 
+0087 force = [force;0];
+0088 
+0089 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 25-May-2012 10:17:07 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of fd_discretization</title>
+  <meta name="keywords" content="fd_discretization">
+  <meta name="description" content="FD_DISCRETIZATION performs finite-difference approximation of the Euler">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">core</a> &gt; fd_discretization.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for core&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>fd_discretization
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>FD_DISCRETIZATION performs finite-difference approximation of the Euler</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ L, f ] = fd_discretization( gu, gv ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> FD_DISCRETIZATION performs finite-difference approximation of the Euler
+ equation under natural boundary conditions of the variational integration
+ problem.
+ gu,gv: gradient data
+ L: discrete Laplacian
+ f: discrete divergence of the gradient field</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ L, f ] = fd_discretization( gu, gv )</a>
+0002 <span class="comment">% FD_DISCRETIZATION performs finite-difference approximation of the Euler</span>
+0003 <span class="comment">% equation under natural boundary conditions of the variational integration</span>
+0004 <span class="comment">% problem.</span>
+0005 <span class="comment">% gu,gv: gradient data</span>
+0006 <span class="comment">% L: discrete Laplacian</span>
+0007 <span class="comment">% f: discrete divergence of the gradient field</span>
+0008 
+0009 f = zeros(size(gu,1)*size(gu,2),1);
+0010 
+0011 n = size(gu,1);
+0012 noEntries = 2*(4*n-2) + 4*(n^2-4*n+2);
+0013 
+0014 rowInds = zeros(1,noEntries);
+0015 colInds = zeros(1,noEntries);
+0016 val = zeros(1,noEntries);
+0017 
+0018 counter = 1;
+0019 
+0020 <span class="keyword">for</span> i=2:(size(gu,1)-1)
+0021     
+0022     <span class="keyword">for</span> j=2:(size(gu,2)-1)
+0023         
+0024         A = (j-1)*size(gu,1) + i;
+0025         
+0026         rowInds(counter) = A;
+0027         colInds(counter) = A;
+0028         val(counter) = -4;
+0029         counter = counter + 1;
+0030         
+0031         rowInds(counter) = A;
+0032         colInds(counter) = (j-2)*size(gu,1) + i;
+0033         val(counter) = 1;
+0034         counter = counter + 1;
+0035         
+0036         rowInds(counter) = A;
+0037         colInds(counter) = j*size(gu,1) + i;
+0038         val(counter) = 1;
+0039         counter = counter + 1;
+0040         
+0041         rowInds(counter) = A;
+0042         colInds(counter) = (j-1)*size(gu,1) + i - 1;
+0043         val(counter) = 1;
+0044         counter = counter + 1;
+0045         
+0046         rowInds(counter) = A;
+0047         colInds(counter) = (j-1)*size(gu,1) + i + 1;
+0048         val(counter) = 1;
+0049         counter = counter + 1;
+0050         
+0051         f(A) = 0.5*(gu(i+1,j)-gu(i-1,j)) + 0.5*(gv(i,j+1)-gv(i,j-1));   <span class="comment">% divergence</span>
+0052         
+0053         
+0054     <span class="keyword">end</span>
+0055     
+0056 <span class="keyword">end</span>
+0057 
+0058 
+0059 j = 1;
+0060 <span class="keyword">for</span> i=2:size(gu,1)-1
+0061     
+0062     A = (j-1)*size(gu,1) + i;
+0063     
+0064     rowInds(counter) = A;
+0065     colInds(counter) = A;
+0066     val(counter) = 1;
+0067     counter = counter + 1;
+0068     
+0069      f(A) = -gv(i,j);
+0070 
+0071     rowInds(counter) = A;
+0072     colInds(counter) = j*size(gu,1) + i;
+0073     val(counter) = -1;
+0074     counter = counter + 1;
+0075     
+0076 <span class="keyword">end</span>
+0077 
+0078 j = size(gu,2);
+0079 <span class="keyword">for</span> i=2:size(gu,1)-1
+0080     
+0081     A = (j-1)*size(gu,1) + i;
+0082     
+0083     rowInds(counter) = A;
+0084     colInds(counter) = A;
+0085     val(counter) = 1;
+0086     counter = counter + 1;
+0087     
+0088     f(A)  = gv(i,j);
+0089     
+0090     rowInds(counter) = A;
+0091     colInds(counter) = (j-2)*size(gu,1) + i;
+0092     val(counter) = -1;
+0093     counter = counter + 1;
+0094     
+0095 <span class="keyword">end</span>
+0096 
+0097 i = 1;
+0098 <span class="keyword">for</span> j=2:size(gu,2)-1
+0099     
+0100     A = (j-1)*size(gu,1) + i;
+0101     
+0102     rowInds(counter) = A;
+0103     colInds(counter) = A;
+0104     val(counter) = 1;
+0105     counter = counter + 1;
+0106     
+0107     f(A) = -gu(i,j);
+0108    
+0109     rowInds(counter) = A;
+0110     colInds(counter) = (j-1)*size(gu,1) + i + 1;
+0111     val(counter) = -1;
+0112     counter = counter + 1;
+0113     
+0114 <span class="keyword">end</span>
+0115 
+0116 
+0117 i = size(gu,1);
+0118 <span class="keyword">for</span> j=2:size(gu,2)-1
+0119     
+0120     A = (j-1)*size(gu,1) + i;
+0121     
+0122     rowInds(counter) = A;
+0123     colInds(counter) = A;
+0124     val(counter) = 1;
+0125     counter = counter + 1;
+0126     
+0127     f(A) = gu(i,j);
+0128     
+0129     rowInds(counter) = A;
+0130     colInds(counter) = (j-1)*size(gu,1) + i - 1;
+0131     val(counter) = -1;
+0132     counter = counter + 1;
+0133     
+0134 <span class="keyword">end</span>
+0135 
+0136 <span class="comment">% NW</span>
+0137 i=1;
+0138 j=1;
+0139 
+0140 A = (j-1)*size(gu,1) + i;
+0141 
+0142 rowInds(counter) = A;
+0143 colInds(counter) = A;
+0144 val(counter) = 1;
+0145 counter = counter + 1;
+0146 
+0147 f(A) = (-gu(i,j)-gv(i,j))/sqrt(2);
+0148       
+0149 rowInds(counter) = A;
+0150 colInds(counter) = j*size(gu,1) + i + 1;
+0151 val(counter) = -1;
+0152 counter = counter + 1;
+0153 
+0154 <span class="comment">% SW</span>
+0155 i=1;
+0156 j=size(gu,2);
+0157 
+0158 A = (j-1)*size(gu,1) + i;
+0159 
+0160 rowInds(counter) = A;
+0161 colInds(counter) = A;
+0162 val(counter) = 1;
+0163 counter = counter + 1;
+0164 
+0165 f(A) = (-gu(i,j)+gv(i,j))/sqrt(2);
+0166 
+0167 rowInds(counter) = A;
+0168 colInds(counter) = (j-2)*size(gu,1) + i + 1;
+0169 val(counter) = -1;
+0170 counter = counter + 1;
+0171 
+0172 <span class="comment">% NE</span>
+0173 i=size(gu,1);
+0174 j=1;
+0175 
+0176 A = (j-1)*size(gu,1) + i;
+0177 
+0178 rowInds(counter) = A;
+0179 colInds(counter) = A;
+0180 val(counter) = 1;
+0181 counter = counter + 1;
+0182 
+0183 f(A) = (gu(i,j)-gv(i,j))/sqrt(2);
+0184             
+0185 rowInds(counter) = A;
+0186 colInds(counter) = j*size(gu,1) + i - 1;
+0187 val(counter) = -1;
+0188 counter = counter + 1;
+0189 
+0190 <span class="comment">% SE</span>
+0191 i=size(gu,1);
+0192 j=size(gu,2);
+0193 
+0194 A = (j-1)*size(gu,1) + i;
+0195 
+0196 rowInds(counter) = A;
+0197 colInds(counter) = A;
+0198 val(counter) = 1;
+0199 counter = counter + 1;
+0200   
+0201 f(A)  = (gu(i,j)+gv(i,j))/sqrt(2);
+0202 
+0203 rowInds(counter) = A;
+0204 colInds(counter) = (j-2)*size(gu,1) + i - 1;
+0205 val(counter) = -1;
+0206 counter = counter + 1;
+0207 
+0208 L = sparse(rowInds,colInds,val);
+0209 
+0210 
+0211 ls = size(L);
+0212 L(ls(1)+1,:)=1;
+0213 L(:,ls(2)+1)=1;
+0214 L(ls(1)+1,ls(2)+1)=0;
+0215 
+0216 f = [f;0];
+0217 
+0218 <span class="keyword">end</span>
+0219</pre></div>
+<hr><address>Generated on Fri 25-May-2012 10:17:07 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

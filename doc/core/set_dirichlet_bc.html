@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of set_dirichlet_bc</title>
+  <meta name="keywords" content="set_dirichlet_bc">
+  <meta name="description" content="SET_DIRICHLET_BC modifies the stiffness matrix to enforce the essential">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">core</a> &gt; set_dirichlet_bc.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for core&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>set_dirichlet_bc
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>SET_DIRICHLET_BC modifies the stiffness matrix to enforce the essential</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ L ] = set_dirichlet_bc( L, cpi, cp, ku, kv, p ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> SET_DIRICHLET_BC modifies the stiffness matrix to enforce the essential 
+ boundary condition at a set of points. The desired value has to be set at
+ an appropriate location in the force vector.
+ L: stiffness matrix
+ cpi: control points at whose Greville abscissae the condition is imposed
+ cp: control points
+ ku, kv: knot vectors
+ p: polynomial degree</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>	COX computes the values of the p+1 basis splines at x. These values are</li><li><a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>	NCP calculates the number of control points in one dimension.</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="set_zero_dirichlet.html" class="code" title="function [ L, f ] = set_zero_dirichlet( L, f, ku, kv, p, cpx, cpy, cpz  )">set_zero_dirichlet</a>	SET_ZERO_DIRICHLET alters the linear system discretizing the Poisson</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ L ] = set_dirichlet_bc( L, cpi, cp, ku, kv, p )</a>
+0002 <span class="comment">% SET_DIRICHLET_BC modifies the stiffness matrix to enforce the essential</span>
+0003 <span class="comment">% boundary condition at a set of points. The desired value has to be set at</span>
+0004 <span class="comment">% an appropriate location in the force vector.</span>
+0005 <span class="comment">% L: stiffness matrix</span>
+0006 <span class="comment">% cpi: control points at whose Greville abscissae the condition is imposed</span>
+0007 <span class="comment">% cp: control points</span>
+0008 <span class="comment">% ku, kv: knot vectors</span>
+0009 <span class="comment">% p: polynomial degree</span>
+0010 
+0011 <span class="comment">% get some stats</span>
+0012 n = [<a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>(ku,p(1)),<a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>(kv,p(2))];           
+0013 
+0014 <span class="comment">% convert to lexicographic index</span>
+0015 A = (cpi(1)-1)*n(2) + cpi(2);
+0016 
+0017 <span class="comment">% erase original</span>
+0018 L(A,:) = 0;
+0019 
+0020 <span class="comment">% evaluate at Greville abscissae</span>
+0021 [Nu,su] = <a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>(cp(1),p(1),ku);
+0022 [Nv,sv] = <a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>(cp(2),p(2),kv);
+0023 
+0024 <span class="keyword">for</span> i=1:p(1)+1
+0025     
+0026     <span class="keyword">for</span> j=1:p(2)+1
+0027       
+0028         I = su - p(1) - 1 + i;          
+0029         J = sv - p(2) - 1 + j;
+0030         B = (I-1)*n(2) + J;
+0031         
+0032         L(A,B) = Nu(1,i)*Nv(1,j);
+0033                
+0034     <span class="keyword">end</span>
+0035  
+0036 <span class="keyword">end</span>
+0037 
+0038 
+0039 <span class="keyword">end</span>
+0040</pre></div>
+<hr><address>Generated on Fri 25-May-2012 10:17:07 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

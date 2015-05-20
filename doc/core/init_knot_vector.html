@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of init_knot_vector</title>
+  <meta name="keywords" content="init_knot_vector">
+  <meta name="description" content="INIT_KNOT_VECTOR creates a knot vector whose entries are distributed">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">core</a> &gt; init_knot_vector.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for core&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>init_knot_vector
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>INIT_KNOT_VECTOR creates a knot vector whose entries are distributed</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ k ] = init_knot_vector( nopx, scale, p ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> INIT_KNOT_VECTOR creates a knot vector whose entries are distributed
+ equally over a Cartisian image grid.
+ nopx: number of pixels
+ scale: density of knots
+ p: polynomial degree
+ k: knot vector</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ k ] = init_knot_vector( nopx, scale, p )</a>
+0002 <span class="comment">% INIT_KNOT_VECTOR creates a knot vector whose entries are distributed</span>
+0003 <span class="comment">% equally over a Cartisian image grid.</span>
+0004 <span class="comment">% nopx: number of pixels</span>
+0005 <span class="comment">% scale: density of knots</span>
+0006 <span class="comment">% p: polynomial degree</span>
+0007 <span class="comment">% k: knot vector</span>
+0008 
+0009 ld = log(nopx)/log(2);
+0010 
+0011 <span class="keyword">if</span>(mod(ld,1)~=0)
+0012     error(<span class="string">'Image size not a power of 2!'</span>);  
+0013 <span class="keyword">end</span>
+0014 
+0015 <span class="keyword">if</span>(scale&gt;ld || scale &lt;0)
+0016     error([<span class="string">'Scale must be between 0 and '</span>,int2str(ld),<span class="string">'!'</span>]);  
+0017 <span class="keyword">end</span>
+0018 
+0019 noElements = 2^(ld-scale);
+0020 
+0021 k = [zeros(1,p),0:noElements:nopx,nopx*ones(1,p)]+0.5;
+0022 
+0023 <span class="keyword">end</span>
+0024</pre></div>
+<hr><address>Generated on Fri 25-May-2012 10:17:07 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

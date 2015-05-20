@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of fdint</title>
+  <meta name="keywords" content="fdint">
+  <meta name="description" content="Init">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">.</a> &gt; fdint.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for .&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>fdint
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>Init</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> Init</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% Init</span>
+0002 clear all;
+0003 close all;
+0004 clc;
+0005 path(path, <span class="string">'./core'</span>);
+0006 
+0007 <span class="comment">% Load data</span>
+0008 load(<span class="string">'./data/sine.mat'</span>);
+0009 npx = size(gu);
+0010 [u,v] = ndgrid(1:1:npx(1),1:1:npx(2));
+0011 
+0012 <span class="comment">% Add noise</span>
+0013 sigma = 1.0;
+0014 nu = normrnd(0,sigma,npx);
+0015 nv = normrnd(0,sigma,npx);
+0016 gun = gu + nu;
+0017 gvn = gv + nu;
+0018 
+0019 <span class="comment">% Make incomplete</span>
+0020 width = 20;
+0021 density = 0.001; 
+0022 mask = imnoise(zeros(size(gu)),<span class="string">'salt &amp; pepper'</span>,density);
+0023 h = ones(width,width);
+0024 mask = imfilter(mask,h);
+0025 mask(find(mask&gt;1)) = 1;
+0026 mask = ones(size(mask)) - mask;
+0027 gui = gu.*mask;
+0028 gvi = gv.*mask;
+0029 
+0030 <span class="comment">% Assemble Poisson equation</span>
+0031 t = cputime;
+0032 <span class="comment">%[Ld,f] = fd_discretization(gu,gv);</span>
+0033 load(<span class="string">'lfdm.mat'</span>);                                  <span class="comment">% or load pre-computed FD discretization of Laplacian (size: 256x256)</span>
+0034 f = f_fdm(gui,gvi);
+0035 f = [f;0];
+0036 disp([<span class="string">'Assembly finishes after '</span>,num2str(cputime-t),<span class="string">' s.'</span>]);
+0037 
+0038 <span class="comment">% Solve sparse</span>
+0039 disp([<span class="string">'Solving sparse linear system of size '</span>,int2str(size(Ld,1)),<span class="string">'x'</span>,int2str(size(Ld,2)),<span class="string">'...'</span>]);
+0040 t = cputime;
+0041 gr = Ld\f;
+0042 disp([<span class="string">'Solved after '</span>,num2str(cputime-t),<span class="string">' s.'</span>]);
+0043 gr = gr(1:length(f)-1);
+0044 gr = reshape(gr,size(gu));
+0045 
+0046 <span class="comment">% L2-error</span>
+0047 [gvr,gur] = gradient(g);
+0048 locerror = sqrt((gu-gur).*(gu-gur)+(gv-gvr).*(gv-gvr));
+0049 error = norm((gu-gur)+(gv-gvr),2)/sqrt(npx(1)*npx(2));
+0050 disp([<span class="string">'L2-error:'</span>,num2str(error)]);
+0051 
+0052 <span class="comment">% Visualization</span>
+0053 plot_gradient_field(gui,gvi);
+0054 
+0055 h=figure(<span class="string">'Position'</span>,[50, 1000, 2000, 1800]);
+0056 set(h,<span class="string">'Color'</span>,<span class="string">'black'</span>);
+0057 hold on
+0058 surf(u,v,gr,locerror,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="string">'FaceColor'</span>,[0.7,0.7,0.7]);
+0059 <span class="comment">%surf(u,v,gr,locerror,'EdgeColor','none','FaceColor','interp');</span>
+0060 <span class="comment">% caxis([min(min(locerror)),max(max(locerror))]);</span>
+0061 <span class="comment">% cbar = colorbar('Location','West');</span>
+0062 <span class="comment">% cpos = get(cbar,'Position');</span>
+0063 <span class="comment">% cpos(3)=1.5*cpos(3);</span>
+0064 <span class="comment">% cpos(4)=0.25*cpos(4);</span>
+0065 <span class="comment">% cpos(2)=cpos(2)+0.12;</span>
+0066 <span class="comment">% cpos(1)=cpos(1)-0.1;</span>
+0067 <span class="comment">% set(cbar,'Position',cpos);</span>
+0068 axis equal;
+0069 view(-40,21); 
+0070 axis tight
+0071 camlight; 
+0072 lighting phong;
+0073 set(gca,<span class="string">'Visible'</span>,<span class="string">'off'</span>)
+0074 camzoom(1.75);
+0075 camdolly(0.1,0.2,0)</pre></div>
+<hr><address>Generated on Mon 21-May-2012 12:15:10 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

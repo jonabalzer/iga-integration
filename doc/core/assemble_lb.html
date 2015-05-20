@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of assemble_lb</title>
+  <meta name="keywords" content="assemble_lb">
+  <meta name="description" content="ASSEMBLE_LB assembles the stiffness matrix for the Poisson problem, i.e.,">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">core</a> &gt; assemble_lb.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for core&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>assemble_lb
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>ASSEMBLE_LB assembles the stiffness matrix for the Poisson problem, i.e.,</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ L ] = assemble_lb( ku, kv, p ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ASSEMBLE_LB assembles the stiffness matrix for the Poisson problem, i.e.,
+ the discrete Laplace-Beltrami operator. 
+ ku,kv: knot vectors
+ p: polynomial degrees</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>	COX computes the values of the p+1 basis splines at x. These values are</li><li><a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>	COXDER computes derivatives of basis splines by Cox-de Boor recursion. It</li><li><a href="get_element_vector.html" class="code" title="function [ e ] = get_element_vector( k, p )">get_element_vector</a>	GET_ELEMENT_VECTOR extracts isogeometric finite elements from a knot</li><li><a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>	NCP calculates the number of control points in one dimension.</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ L ] = assemble_lb( ku, kv, p )</a>
+0002 <span class="comment">% ASSEMBLE_LB assembles the stiffness matrix for the Poisson problem, i.e.,</span>
+0003 <span class="comment">% the discrete Laplace-Beltrami operator.</span>
+0004 <span class="comment">% ku,kv: knot vectors</span>
+0005 <span class="comment">% p: polynomial degrees</span>
+0006 
+0007 disp(<span class="string">'Assembling stiffness matrix...'</span>);
+0008 
+0009 <span class="comment">% get finite elements</span>
+0010 eu = <a href="get_element_vector.html" class="code" title="function [ e ] = get_element_vector( k, p )">get_element_vector</a>(ku,p(1));
+0011 ev = <a href="get_element_vector.html" class="code" title="function [ e ] = get_element_vector( k, p )">get_element_vector</a>(kv,p(2));
+0012 
+0013 <span class="comment">% get some stats</span>
+0014 nb = (p(1)+1)*(p(2)+1);                     <span class="comment">% no of local basis functions</span>
+0015 n = [<a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>(ku,p(1)),<a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>(kv,p(2))];            <span class="comment">% no of control points per dim</span>
+0016 ngps = [eu(2),ev(2)]-0.5;                   <span class="comment">% no of Gauss points</span>
+0017 
+0018 <span class="comment">% allocate temp and output arrays</span>
+0019 rowInds = zeros(1,(length(eu)-1)*(length(ev)-1)*nb*nb); <span class="comment">%+n(1)*n(2)+1);</span>
+0020 colInds = zeros(1,(length(eu)-1)*(length(ev)-1)*nb*nb); <span class="comment">%+n(1)*n(2)+1);</span>
+0021 values = zeros(1,(length(eu)-1)*(length(ev)-1)*nb*nb); <span class="comment">%+n(1)*n(2)+1);</span>
+0022 cube = zeros(nb,nb,ngps(1)*ngps(2));
+0023 Nau = zeros(1,nb);
+0024 Nav = zeros(1,nb);
+0025 
+0026 counter = 1;  <span class="comment">% matrix entry counter</span>
+0027 
+0028 <span class="comment">% iterate through the elements</span>
+0029 <span class="keyword">for</span> e=1:length(eu)-1
+0030     
+0031     <span class="keyword">for</span> f=1:length(ev)-1
+0032            
+0033         <span class="comment">% evaluate at Gauss points = image pixels</span>
+0034         <span class="keyword">for</span> gpi=1:ngps(1)
+0035             
+0036             <span class="keyword">for</span> gpj=1:ngps(2)
+0037 
+0038                 [Nu,su] = <a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>(eu(e)-0.5+gpi,p(1),ku);
+0039                 [Nv,sv] = <a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>(ev(f)-0.5+gpj,p(2),kv);
+0040                 Nu = <a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>(Nu,su,ku);
+0041                 Nv = <a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>(Nv,sv,kv);
+0042                 
+0043                 <span class="keyword">for</span> i=1:(p(1)+1)
+0044                     
+0045                     <span class="keyword">for</span> j=1:(p(2)+1)
+0046                         
+0047                         Nau((i-1)*(p(2)+1)+j) = Nu(2,i)*Nv(1,j);
+0048                         Nav((i-1)*(p(2)+1)+j) = Nu(1,i)*Nv(2,j);
+0049                         
+0050                     <span class="keyword">end</span>
+0051                     
+0052                 <span class="keyword">end</span>
+0053                 
+0054                 <span class="keyword">for</span> a=1:nb
+0055                     
+0056                     <span class="keyword">for</span> b=1:nb
+0057                         
+0058                         cube(a,b,(gpi-1)*ngps(2)+gpj) = Nau(a)*Nau(b) + Nav(a)*Nav(b);
+0059                         
+0060                     <span class="keyword">end</span>
+0061                     
+0062                     
+0063                 <span class="keyword">end</span>
+0064                 
+0065             <span class="keyword">end</span>
+0066             
+0067         <span class="keyword">end</span>
+0068         
+0069         <span class="comment">% perform the actual integration</span>
+0070         <span class="keyword">for</span> a=1:nb
+0071             
+0072             <span class="keyword">for</span> b=1:nb
+0073                 
+0074                 int = 0;
+0075                 
+0076                 <span class="keyword">for</span> gpi=1:ngps(1)
+0077                     
+0078                     <span class="keyword">for</span> gpj=1:ngps(2)
+0079                         
+0080                         int = int + cube(a,b,(gpi-1)*ngps(2)+gpj);
+0081                         
+0082                     <span class="keyword">end</span>
+0083                     
+0084                 <span class="keyword">end</span>
+0085                 
+0086                 Ia = e + floor((a-1)/(p(2)+1)); <span class="comment">% e - 1 + i</span>
+0087                 Ja = f + mod(a-1,p(2)+1);
+0088                 A = (Ia-1)*n(2) + Ja;
+0089                 
+0090                 Ib = e + floor((b-1)/(p(2)+1));
+0091                 Jb = f + mod(b-1,p(2)+1);
+0092                 B = (Ib-1)*n(2) + Jb;
+0093                 
+0094                 rowInds(counter) = A;
+0095                 colInds(counter) = B;
+0096                 values(counter) = int;
+0097                 counter = counter + 1;
+0098                 
+0099             <span class="keyword">end</span>
+0100             
+0101         <span class="keyword">end</span>
+0102         
+0103         
+0104     <span class="keyword">end</span>
+0105     
+0106 <span class="keyword">end</span>
+0107 
+0108 <span class="comment">% initialize sparse matrix</span>
+0109 L = sparse(rowInds,colInds,values);
+0110 ls = size(L);
+0111 
+0112 <span class="comment">% add zero-mean condition</span>
+0113 L(ls(1)+1,:) = 1;
+0114 L(:,ls(2)+1) = 1;
+0115 L(ls(1)+1,ls(2)+1) = 1;
+0116 
+0117 
+0118 <span class="keyword">end</span>
+0119</pre></div>
+<hr><address>Generated on Fri 25-May-2012 10:17:07 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

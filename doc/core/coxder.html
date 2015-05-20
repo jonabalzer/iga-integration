@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of coxder</title>
+  <meta name="keywords" content="coxder">
+  <meta name="description" content="COXDER computes derivatives of basis splines by Cox-de Boor recursion. It">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">core</a> &gt; coxder.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for core&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>coxder
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>COXDER computes derivatives of basis splines by Cox-de Boor recursion. It</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ Nout ] = coxder( N, knotSpan, k) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> COXDER computes derivatives of basis splines by Cox-de Boor recursion. It
+ is assumed that N is the output of COX(x,pk), i.e., its first row
+ contains the function values at x. This function fills out the second row
+ with the first derivative. The 2nd to pth derivatives are not yet
+ implemented.
+ N: (p+1)x(p+1) matrix, return value of COX(x,p,k).
+ knotSpan: knot span of the abscissae, return value of COX(x,p,k)
+ k: knot vector
+ Nout: overwritten array N</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="assemble_force.html" class="code" title="function [ force ] = assemble_force( ku, kv, p, gu, gv )">assemble_force</a>	ASSEMBLE_FORCE assembles the right-hand side of the discrete Poisson</li><li><a href="assemble_lb.html" class="code" title="function [ L ] = assemble_lb( ku, kv, p )">assemble_lb</a>	ASSEMBLE_LB assembles the stiffness matrix for the Poisson problem, i.e.,</li><li><a href="eval_func.html" class="code" title="function [ g, gu, gv ] = eval_func( u, v, ku, kv, p, cps )">eval_func</a>	EVAL_FUNC evaluates a function on a B-spline patch defined by its control</li><li><a href="set_neumann_bc.html" class="code" title="function [ L ] = set_neumann_bc( L, cpi, cp, dir, ku, kv, p )">set_neumann_bc</a>	SET_NEUMANN_BC modifies the stiffness matrix as to enforce the natural or</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ Nout ] = coxder( N, knotSpan, k)</a>
+0002 <span class="comment">% COXDER computes derivatives of basis splines by Cox-de Boor recursion. It</span>
+0003 <span class="comment">% is assumed that N is the output of COX(x,pk), i.e., its first row</span>
+0004 <span class="comment">% contains the function values at x. This function fills out the second row</span>
+0005 <span class="comment">% with the first derivative. The 2nd to pth derivatives are not yet</span>
+0006 <span class="comment">% implemented.</span>
+0007 <span class="comment">% N: (p+1)x(p+1) matrix, return value of COX(x,p,k).</span>
+0008 <span class="comment">% knotSpan: knot span of the abscissae, return value of COX(x,p,k)</span>
+0009 <span class="comment">% k: knot vector</span>
+0010 <span class="comment">% Nout: overwritten array N</span>
+0011 
+0012 Nout = N;
+0013 p = size(N,1)-1;
+0014 
+0015 <span class="comment">% get supporting knots 'subKnot'</span>
+0016 subKnot = zeros(1,2*p+1);
+0017 <span class="keyword">for</span> s=1:(2*p+1)    
+0018     subKnot(s) = k(knotSpan-p+s-1);
+0019 <span class="keyword">end</span>
+0020 
+0021 s = 2;
+0022     
+0023 <span class="keyword">for</span> t=1:p
+0024     
+0025     <span class="keyword">if</span>((subKnot(t+p)-subKnot(t))~=0)   
+0026         A = p/(subKnot(t+p)-subKnot(t));
+0027     <span class="keyword">else</span>
+0028         A = 0;
+0029     <span class="keyword">end</span>
+0030     
+0031     <span class="keyword">if</span>((subKnot(t+p+1)-subKnot(t+1))~=0)
+0032         B = p/(subKnot(t+p+1)-subKnot(t+1));
+0033     <span class="keyword">else</span>
+0034         B = 0;
+0035     <span class="keyword">end</span>
+0036     
+0037     Nout(s,t) = A*N(s,t)-B*N(s,t+1);
+0038     
+0039 <span class="keyword">end</span>
+0040 
+0041 <span class="keyword">if</span>((subKnot(p+1+p)-subKnot(p+1))~=0)
+0042     A = p/(subKnot(p+1+p)-subKnot(p+1));
+0043 <span class="keyword">else</span>
+0044     A = 0;
+0045 <span class="keyword">end</span>
+0046 
+0047 Nout(s,p+1) = A*N(s,p+1);
+0048 
+0049</pre></div>
+<hr><address>Generated on Fri 25-May-2012 10:17:07 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

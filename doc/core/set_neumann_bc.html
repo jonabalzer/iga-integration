@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of set_neumann_bc</title>
+  <meta name="keywords" content="set_neumann_bc">
+  <meta name="description" content="SET_NEUMANN_BC modifies the stiffness matrix as to enforce the natural or">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">core</a> &gt; set_neumann_bc.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for core&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>set_neumann_bc
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>SET_NEUMANN_BC modifies the stiffness matrix as to enforce the natural or</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [ L ] = set_neumann_bc( L, cpi, cp, dir, ku, kv, p ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> SET_NEUMANN_BC modifies the stiffness matrix as to enforce the natural or 
+ free boundary condition at a given set of points. The desired value has to
+ be set at an appropriate location in the force vector.
+ L: stiffness matrix
+ cpi: control points at whose Greville abscissae the condition is imposed
+ cp: control points
+ dir: direction of derivative
+ ku, kv: knot vectors
+ p: polynomial degree</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>	COX computes the values of the p+1 basis splines at x. These values are</li><li><a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>	COXDER computes derivatives of basis splines by Cox-de Boor recursion. It</li><li><a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>	NCP calculates the number of control points in one dimension.</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="set_natural.html" class="code" title="function [ L,f ] = set_natural( L, f, gu, gv, ku, kv, p, cpx, cpy, cpz )">set_natural</a>	SET_NATURAL enforces the natural boundary condition along the entire</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [ L ] = set_neumann_bc( L, cpi, cp, dir, ku, kv, p )</a>
+0002 <span class="comment">% SET_NEUMANN_BC modifies the stiffness matrix as to enforce the natural or</span>
+0003 <span class="comment">% free boundary condition at a given set of points. The desired value has to</span>
+0004 <span class="comment">% be set at an appropriate location in the force vector.</span>
+0005 <span class="comment">% L: stiffness matrix</span>
+0006 <span class="comment">% cpi: control points at whose Greville abscissae the condition is imposed</span>
+0007 <span class="comment">% cp: control points</span>
+0008 <span class="comment">% dir: direction of derivative</span>
+0009 <span class="comment">% ku, kv: knot vectors</span>
+0010 <span class="comment">% p: polynomial degree</span>
+0011 
+0012 <span class="comment">% get some stats</span>
+0013 n = [<a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>(ku,p(1)),<a href="ncp.html" class="code" title="function [ n ] = ncp( k, p )">ncp</a>(kv,p(2))];            <span class="comment">% no of control points per dim</span>
+0014 
+0015 <span class="comment">% convert to lexicographic index</span>
+0016 A = (cpi(1)-1)*n(2) + cpi(2);
+0017 
+0018 <span class="comment">% erase original</span>
+0019 L(A,:) = 0;
+0020 
+0021 <span class="comment">% evaluate at Greville abscissae</span>
+0022 [Nu,su] = <a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>(cp(1),p(1),ku);
+0023 [Nv,sv] = <a href="cox.html" class="code" title="function [ N, knotSpan ] = cox( x, p, k )">cox</a>(cp(2),p(2),kv);
+0024 Nu = <a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>(Nu,su,ku);
+0025 Nv = <a href="coxder.html" class="code" title="function [ Nout ] = coxder( N, knotSpan, k)">coxder</a>(Nv,sv,kv);
+0026 
+0027 <span class="keyword">for</span> i=1:p(1)+1
+0028     
+0029     <span class="keyword">for</span> j=1:p(2)+1
+0030       
+0031         I = su - p(1) - 1 + i;          
+0032         J = sv - p(2) - 1 + j;
+0033         B = (I-1)*n(2) + J;
+0034         
+0035         L(A,B) = dir(1)*Nu(2,i)*Nv(1,j) + dir(2)*Nu(1,i)*Nv(2,j);
+0036                
+0037     <span class="keyword">end</span>
+0038  
+0039 <span class="keyword">end</span>
+0040 
+0041 
+0042 <span class="keyword">end</span>
+0043</pre></div>
+<hr><address>Generated on Fri 25-May-2012 10:17:07 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>
