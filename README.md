@@ -1,2 +1,1 @@
-# iga-integration
-Gradient field integration with isogeometric analysis
+To install, unpack the archive onto your machine and run 'igaint.m' in the root directory with MATLAB. Sample data sets are located in '/data'. Type 'help function' in the MATLAB prompt to get information about a specific function. 
